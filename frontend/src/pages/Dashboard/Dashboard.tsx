@@ -1,32 +1,31 @@
+import { useEffect, useState } from "react";
+import { getDashboardStats } from "../../api/dashboard";
+import StatCard from "../../components/Dashboard/StatCard";
+
 export default function Dashboard() {
+  const [stats, setStats] = useState({
+    vehicles: 0,
+    geofences: 0,
+    alerts: 0,
+    violations: 0,
+  });
+
+  useEffect(() => {
+    getDashboardStats().then(setStats);
+  }, []);
+
   return (
     <div>
       <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
       <div className="grid grid-cols-4 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-gray-500">Vehicles</h2>
+        <StatCard title="Vehicles" value={stats.vehicles} />
 
-          <p className="text-3xl font-bold">0</p>
-        </div>
+        <StatCard title="Geofences" value={stats.geofences} />
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-gray-500">Geofences</h2>
+        <StatCard title="Alerts" value={stats.alerts} />
 
-          <p className="text-3xl font-bold">0</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-gray-500">Alerts</h2>
-
-          <p className="text-3xl font-bold">0</p>
-        </div>
-
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-gray-500">Violations</h2>
-
-          <p className="text-3xl font-bold">0</p>
-        </div>
+        <StatCard title="Violations" value={stats.violations} />
       </div>
     </div>
   );

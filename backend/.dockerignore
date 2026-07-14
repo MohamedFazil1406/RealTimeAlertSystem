@@ -1,0 +1,11 @@
+.git
+
+.vscode
+
+tmp
+
+bin
+
+*.exe
+
+node_modules

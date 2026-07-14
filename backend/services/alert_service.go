@@ -18,6 +18,7 @@ func NewAlertService() *AlertService {
 }
 
 func (s *AlertService) Create(req dto.CreateAlertRequest) (*models.Alert, error) {
+	println("AlertService.Create() called")
 
 	geofenceID, err := uuid.Parse(req.GeofenceID)
 
