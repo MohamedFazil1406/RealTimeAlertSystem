@@ -1,6 +1,7 @@
 package services
 
 import (
+	"log"
 	"time"
 
 	"github.com/MohamedFazil1406/RealTimeAlertSystem/dto"
@@ -70,15 +71,20 @@ func (s *LocationService) UpdateLocation(req dto.UpdateLocationRequest) error {
 		Lng: req.Longitude,
 	}
 
-	for _, geo := range geofences {
+for _, geo := range geofences {
 
 	polygon := utils.ParsePolygon(geo.Polygon)
 
 	inside := utils.PointInPolygon(currentPoint, polygon)
 
+	log.Printf("Geofence=%s Inside=%v", geo.Name, inside)
+
 	state, err := s.stateRepo.Get(vehicleID, geo.ID)
 
+	// First time seeing this vehicle/geofence pair
 	if err != nil || state.ID == uuid.Nil {
+
+		log.Println("No previous state. Saving initial state.")
 
 		state = &models.VehicleState{
 			VehicleID:  vehicleID,
@@ -86,68 +92,54 @@ func (s *LocationService) UpdateLocation(req dto.UpdateLocationRequest) error {
 			IsInside:   inside,
 		}
 
-		err = s.stateRepo.Save(state)
-		if err != nil {
+		if err := s.stateRepo.Save(state); err != nil {
 			return err
 		}
 
 		continue
 	}
 
-	if state.IsInside != inside {
+	log.Printf("Previous=%v Current=%v", state.IsInside, inside)
+
+	// No state change
+	if state.IsInside == inside {
+		continue
+	}
 
 	event := "exit"
-
 	if inside {
 		event = "entry"
 	}
 
+	log.Printf("Vehicle %s detected", event)
+
 	violation := models.Violation{
-
-		VehicleID: vehicleID,
-
+		VehicleID:  vehicleID,
 		GeofenceID: geo.ID,
-
-		EventType: event,
-
-		Latitude: req.Latitude,
-
-		Longitude: req.Longitude,
-
-		Timestamp: timestamp,
+		EventType:  event,
+		Latitude:   req.Latitude,
+		Longitude:  req.Longitude,
+		Timestamp:  timestamp,
 	}
 
-	err = s.violationRepo.Create(&violation)
-
-	alert := dto.AlertMessage{
-
-	EventType: event,
-
-	VehicleID: vehicleID.String(),
-
-	GeofenceID: geo.ID.String(),
-
-	Latitude: req.Latitude,
-
-	Longitude: req.Longitude,
-
-	Timestamp: req.Timestamp,
-}
-
-websocket.Broadcast(alert)
-
-	if err != nil {
+	if err := s.violationRepo.Create(&violation); err != nil {
 		return err
 	}
+
+	websocket.Broadcast(dto.AlertMessage{
+		EventType:  event,
+		VehicleID:  vehicleID.String(),
+		GeofenceID: geo.ID.String(),
+		Latitude:   req.Latitude,
+		Longitude:  req.Longitude,
+		Timestamp:  req.Timestamp,
+	})
 
 	state.IsInside = inside
 
-	err = s.stateRepo.Save(state)
-
-	if err != nil {
+	if err := s.stateRepo.Save(state); err != nil {
 		return err
 	}
-}
 }
 
 	return nil

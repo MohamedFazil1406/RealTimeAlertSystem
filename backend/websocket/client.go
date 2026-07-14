@@ -19,8 +19,10 @@ func HandleWebSocket(c *gin.Context) {
 	conn, err := Upgrader.Upgrade(c.Writer, c.Request, nil)
 
 	if err != nil {
+		println("Upgrade failed:", err.Error())
 		return
 	}
+		println("Client connected")
 
 	AlertHub.Mutex.Lock()
 
@@ -29,7 +31,7 @@ func HandleWebSocket(c *gin.Context) {
 	AlertHub.Mutex.Unlock()
 
 	defer func() {
-
+		println("Client disconnected")
 		AlertHub.Mutex.Lock()
 
 		delete(AlertHub.Clients, conn)
