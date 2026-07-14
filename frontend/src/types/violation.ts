@@ -1,5 +1,5 @@
 export interface Violation {
-  Id: string;
+  ID: string;
 
   VehicleID: string;
 
