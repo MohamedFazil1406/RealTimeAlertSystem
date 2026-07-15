@@ -145,6 +145,13 @@ func (s *LocationService) UpdateLocation(req dto.UpdateLocationRequest) error {
 			Timestamp:  req.Timestamp,
 		})
 
+		log.Println("Broadcasting Alert...")
+			log.Printf("Vehicle=%s Geofence=%s Event=%s",
+				vehicleID.String(),
+				geo.ID.String(),
+				event,
+			)
+
 		// Update state
 		state.IsInside = inside
 
