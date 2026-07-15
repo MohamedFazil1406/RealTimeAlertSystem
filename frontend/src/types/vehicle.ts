@@ -10,4 +10,8 @@ export interface Vehicle {
   phone: string;
 
   status: string;
+
+  latitude?: number;
+
+  longitude?: number;
 }

@@ -30,6 +30,6 @@ func (s *VehicleService) CreateVehicle(req dto.CreateVehicleRequest) (*models.Ve
 	return &vehicle, err
 }
 
-func (s *VehicleService) GetVehicles() ([]models.Vehicle, error) {
-	return s.repo.GetAll()
+func (s *VehicleService) GetVehicles() ([]dto.VehicleWithLocation, error) {
+	return s.repo.GetVehiclesWithLocation()
 }

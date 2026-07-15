@@ -15,6 +15,7 @@ export default function Vehicles() {
     const data = await getVehicles();
 
     console.log("this is data", data);
+    console.log("First Vehicle:", JSON.stringify(data.vehicles[0], null, 2));
 
     setVehicles(data.vehicles);
   }

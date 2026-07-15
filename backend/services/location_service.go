@@ -56,11 +56,21 @@ func (s *LocationService) UpdateLocation(req dto.UpdateLocationRequest) error {
 		Timestamp: timestamp,
 	}
 
-	err = s.locationRepo.Save(&location)
-	if err != nil {
+	// Save latest location
+	if err := s.locationRepo.Save(&location); err != nil {
 		return err
 	}
 
+	// Broadcast location update (for live map)
+	websocket.Broadcast(gin.H{
+		"type":       "location",
+		"vehicle_id": vehicleID.String(),
+		"latitude":   req.Latitude,
+		"longitude":  req.Longitude,
+		"timestamp":  req.Timestamp,
+	})
+
+	// Load all geofences
 	geofences, err := s.geoRepo.GetAll()
 	if err != nil {
 		return err
@@ -71,76 +81,77 @@ func (s *LocationService) UpdateLocation(req dto.UpdateLocationRequest) error {
 		Lng: req.Longitude,
 	}
 
-for _, geo := range geofences {
+	for _, geo := range geofences {
 
-	polygon := utils.ParsePolygon(geo.Polygon)
+		polygon := utils.ParsePolygon(geo.Polygon)
 
-	inside := utils.PointInPolygon(currentPoint, polygon)
+		inside := utils.PointInPolygon(currentPoint, polygon)
 
-	log.Printf("Geofence=%s Inside=%v", geo.Name, inside)
+		log.Printf("Geofence=%s Inside=%v", geo.Name, inside)
 
-	state, err := s.stateRepo.Get(vehicleID, geo.ID)
+		state, err := s.stateRepo.Get(vehicleID, geo.ID)
 
-	// First time seeing this vehicle/geofence pair
-	if err != nil || state.ID == uuid.Nil {
+		// First time this vehicle is checked against this geofence
+		if err != nil {
 
-		log.Println("No previous state. Saving initial state.")
+			state = &models.VehicleState{
+				VehicleID:  vehicleID,
+				GeofenceID: geo.ID,
+				IsInside:   inside,
+			}
 
-		state = &models.VehicleState{
+			if err := s.stateRepo.Save(state); err != nil {
+				return err
+			}
+
+			continue
+		}
+
+		log.Printf("Previous=%v Current=%v", state.IsInside, inside)
+
+		// No change
+		if state.IsInside == inside {
+			continue
+		}
+
+		event := "exit"
+		if inside {
+			event = "entry"
+		}
+
+		log.Printf("Vehicle %s detected", event)
+
+		// Save violation
+		violation := models.Violation{
 			VehicleID:  vehicleID,
 			GeofenceID: geo.ID,
-			IsInside:   inside,
+			EventType:  event,
+			Latitude:   req.Latitude,
+			Longitude:  req.Longitude,
+			Timestamp:  timestamp,
 		}
+
+		if err := s.violationRepo.Create(&violation); err != nil {
+			return err
+		}
+
+		// Broadcast alert
+		websocket.Broadcast(dto.AlertMessage{
+			EventType:  event,
+			VehicleID:  vehicleID.String(),
+			GeofenceID: geo.ID.String(),
+			Latitude:   req.Latitude,
+			Longitude:  req.Longitude,
+			Timestamp:  req.Timestamp,
+		})
+
+		// Update state
+		state.IsInside = inside
 
 		if err := s.stateRepo.Save(state); err != nil {
 			return err
 		}
-
-		continue
 	}
-
-	log.Printf("Previous=%v Current=%v", state.IsInside, inside)
-
-	// No state change
-	if state.IsInside == inside {
-		continue
-	}
-
-	event := "exit"
-	if inside {
-		event = "entry"
-	}
-
-	log.Printf("Vehicle %s detected", event)
-
-	violation := models.Violation{
-		VehicleID:  vehicleID,
-		GeofenceID: geo.ID,
-		EventType:  event,
-		Latitude:   req.Latitude,
-		Longitude:  req.Longitude,
-		Timestamp:  timestamp,
-	}
-
-	if err := s.violationRepo.Create(&violation); err != nil {
-		return err
-	}
-
-	websocket.Broadcast(dto.AlertMessage{
-		EventType:  event,
-		VehicleID:  vehicleID.String(),
-		GeofenceID: geo.ID.String(),
-		Latitude:   req.Latitude,
-		Longitude:  req.Longitude,
-		Timestamp:  req.Timestamp,
-	})
-
-	state.IsInside = inside
-
-	if err := s.stateRepo.Save(state); err != nil {
-		return err
-	}
-}
 
 	return nil
 }

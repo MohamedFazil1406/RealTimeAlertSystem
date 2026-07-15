@@ -42,6 +42,7 @@ func main() {
 	routes.RegisterAlertRoutes(router)
 	routes.RegisterViolationRoutes(router)
 	routes.RegisterWebSocket(router)
+	routes.RegisterDashboardRoutes(router)
 
 	router.Run(":" + config.GetEnv("PORT"))
 }

@@ -1,32 +1,41 @@
 import { useEffect, useState } from "react";
+
 import { getDashboardStats } from "../../api/dashboard";
-import StatCard from "../../components/Dashboard/StatCard";
+
+import { type DashboardStats } from "../../types/dashboard";
+
+import Card from "../../components/Dashboard/Card";
 
 export default function Dashboard() {
-  const [stats, setStats] = useState({
-    vehicles: 0,
-    geofences: 0,
-    alerts: 0,
-    violations: 0,
+  const [stats, setStats] = useState<DashboardStats>({
+    total_vehicles: 0,
+    total_geofences: 0,
+    total_violations: 0,
+    total_alerts: 0,
   });
 
   useEffect(() => {
-    getDashboardStats().then(setStats);
+    loadStats();
   }, []);
 
+  async function loadStats() {
+    try {
+      const data = await getDashboardStats();
+      setStats(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
   return (
-    <div>
-      <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
+    <div className="grid grid-cols-4 gap-4">
+      <Card title="Vehicles" value={stats.total_vehicles} />
 
-      <div className="grid grid-cols-4 gap-6">
-        <StatCard title="Vehicles" value={stats.vehicles} />
+      <Card title="Geofences" value={stats.total_geofences} />
 
-        <StatCard title="Geofences" value={stats.geofences} />
+      <Card title="Alerts" value={stats.total_alerts} />
 
-        <StatCard title="Alerts" value={stats.alerts} />
-
-        <StatCard title="Violations" value={stats.violations} />
-      </div>
+      <Card title="Violations" value={stats.total_violations} />
     </div>
   );
 }
