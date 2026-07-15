@@ -234,6 +234,20 @@ npm run dev
 docker compose up --build
 ```
 
+# Docker Images
+
+## Backend
+
+```bash
+docker pull mon9ters/geofence-backend:latest
+```
+
+## Frontend
+
+```bash
+docker pull mon9ters/geofence-frontend:latest
+```
+
 ---
 
 # Screenshots
