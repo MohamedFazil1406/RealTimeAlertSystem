@@ -6,11 +6,15 @@ import { VehicleContext } from "../context/VehicleContext";
 
 export default function useWebSocket() {
   const { addAlert } = useContext(AlertContext);
-
   const { setVehicles } = useContext(VehicleContext);
 
   useEffect(() => {
-    const socket = new WebSocket("ws://localhost:8080/ws/alerts");
+    const apiUrl = import.meta.env.VITE_API_URL;
+
+    // Convert http:// -> ws:// and https:// -> wss://
+    const wsUrl = apiUrl.replace(/^http/, "ws");
+
+    const socket = new WebSocket(`${wsUrl}/ws/alerts`);
 
     socket.onopen = () => {
       console.log("WebSocket Connected");
@@ -36,7 +40,7 @@ export default function useWebSocket() {
         return;
       }
 
-      // Entry / Exit alerts
+      // Entry / Exit Alerts
       addAlert(data);
 
       toast.success(`${data.event_type.toUpperCase()} detected`);
