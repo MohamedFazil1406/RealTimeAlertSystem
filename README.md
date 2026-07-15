@@ -1,35 +1,43 @@
 # Geofencing & Real-Time Alert System
 
-A full-stack geofencing and vehicle tracking system built with **Go**, **React**, **PostgreSQL (PostGIS)**, **WebSockets**, and **Docker**.
+A full-stack **real-time vehicle tracking and geofencing platform** built using **Go**, **React**, **PostgreSQL (PostGIS)**, **Leaflet**, **WebSockets**, and **Docker**.
 
-## Features
+The system tracks vehicle locations in real time, detects when vehicles enter or leave predefined geofenced areas, records violations, and delivers live alerts through WebSockets.
 
-### Backend
+---
+
+# Features
+
+## Backend
 
 - Vehicle Management
 - Geofence Management
-- Location Tracking
+- Real-Time Vehicle Location Tracking
 - Point-in-Polygon Detection
-- Entry/Exit Detection
+- Entry & Exit Detection
 - Alert Configuration
 - Violation History
+- Dashboard Statistics API
 - WebSocket Real-Time Alerts
 
-### Frontend
+---
+
+## Frontend
 
 - Dashboard
 - Vehicle Management
 - Interactive Leaflet Map
 - Geofence Drawing
+- Live Vehicle Tracking
 - Real-Time Alert Feed
 - Violation History
-- Responsive UI
+- Responsive User Interface
 
 ---
 
-## Tech Stack
+# Tech Stack
 
-### Backend
+## Backend
 
 - Go
 - Gin
@@ -38,132 +46,233 @@ A full-stack geofencing and vehicle tracking system built with **Go**, **React**
 - PostGIS
 - Gorilla WebSocket
 
-### Frontend
+## Frontend
 
 - React
 - TypeScript
 - Vite
 - Tailwind CSS
-- Leaflet
+- React Leaflet
 - Axios
 
-### Infrastructure
+## Infrastructure
 
 - Docker
 - Docker Compose
 
 ---
 
-## Project Structure
+# Project Structure
 
-```
-RealTimeAlertSystem
+```text
+RealTimeAlertSystem/
 
-backend/
-
-frontend/
-
-docker-compose.yml
-
-README.md
-
-SETUP.md
+├── backend/
+│   ├── cmd/
+│   ├── config/
+│   ├── database/
+│   ├── dto/
+│   ├── handlers/
+│   ├── middleware/
+│   ├── models/
+│   ├── repository/
+│   ├── routes/
+│   ├── services/
+│   ├── utils/
+│   └── websocket/
+│
+├── frontend/
+│   ├── src/
+│   │   ├── api/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── pages/
+│   │   └── types/
+│
+├── docker-compose.yml
+├── README.md
+└── SETUP.md
 ```
 
 ---
 
-## API Endpoints
+# System Architecture
 
-### Vehicles
-
+```text
+                 React Frontend
+                        │
+        REST API + WebSocket Connection
+                        │
+                 Go (Gin Backend)
+                        │
+       ┌────────────────┴────────────────┐
+       │                                 │
+ PostgreSQL + PostGIS             WebSocket Hub
+       │                                 │
+ Vehicle / Geofence Data          Live Alerts
 ```
-POST /vehicles
 
-GET /vehicles
+---
 
+# Application Workflow
+
+```text
+Vehicle Location Update
+          │
+          ▼
 POST /vehicles/location
-
-GET /vehicles/location/{vehicle_id}
-```
-
-### Geofences
-
-```
-POST /geofences
-
-GET /geofences
-```
-
-### Alerts
-
-```
-POST /alerts/configure
-
-GET /alerts
-
-GET /ws/alerts
-```
-
-### Violations
-
-```
-GET /violations/history
+          │
+          ▼
+Save Vehicle Location
+          │
+          ▼
+Point-In-Polygon Detection
+          │
+          ▼
+Entry / Exit Detection
+          │
+          ▼
+Create Violation Record
+          │
+          ▼
+Broadcast WebSocket Alert
+          │
+          ▼
+Update Dashboard & Alert Feed
 ```
 
 ---
 
-## Screenshots
+# REST API
 
-- Dashboard
-- Vehicle Page
-- Geofence Map
-- Alert Feed
-- Violation History
+## Vehicles
 
-(Add screenshots here)
+| Method | Endpoint                         | Description                 |
+| ------ | -------------------------------- | --------------------------- |
+| POST   | `/vehicles`                      | Create a new vehicle        |
+| GET    | `/vehicles`                      | Retrieve all vehicles       |
+| POST   | `/vehicles/location`             | Update vehicle location     |
+| GET    | `/vehicles/location/:vehicle_id` | Get latest vehicle location |
 
 ---
 
-## Architecture
+## Geofences
 
+| Method | Endpoint     | Description            |
+| ------ | ------------ | ---------------------- |
+| POST   | `/geofences` | Create a geofence      |
+| GET    | `/geofences` | Retrieve all geofences |
+
+---
+
+## Alerts
+
+| Method | Endpoint            | Description                        |
+| ------ | ------------------- | ---------------------------------- |
+| POST   | `/alerts/configure` | Configure alert settings           |
+| GET    | `/alerts`           | Retrieve alerts                    |
+| GET    | `/ws/alerts`        | WebSocket endpoint for live alerts |
+
+---
+
+## Violations
+
+| Method | Endpoint              | Description                |
+| ------ | --------------------- | -------------------------- |
+| GET    | `/violations/history` | Retrieve violation history |
+
+---
+
+## Dashboard
+
+| Method | Endpoint     | Description          |
+| ------ | ------------ | -------------------- |
+| GET    | `/dashboard` | Dashboard statistics |
+
+---
+
+# Getting Started
+
+## Clone Repository
+
+```bash
+git clone https://github.com/MohamedFazil1406/RealTimeAlertSystem.git
+
+cd RealTimeAlertSystem
 ```
-React
 
-↓
+---
 
-REST API
+## Backend Setup
 
-↓
+```bash
+cd backend
 
-Go Backend
+go mod tidy
 
-↓
-
-PostgreSQL + PostGIS
-
-↓
-
-WebSocket Alerts
+go run ./cmd
 ```
 
 ---
 
-## Deployment
+## Frontend Setup
 
-Backend
+```bash
+cd frontend
 
-Docker Container
+npm install
 
-Frontend
-
-Docker Container
-
-Database
-
-PostgreSQL + PostGIS
+npm run dev
+```
 
 ---
 
-## Author
+## Docker
 
-Mohamed Fazil
+```bash
+docker compose up --build
+```
+
+---
+
+# Screenshots
+
+| Dashboard                           | Vehicle Management                |
+| ----------------------------------- | --------------------------------- |
+| ![](Screenshots/dashboard-page.png) | ![](Screenshots/vehicle-page.png) |
+
+| Geofence & Live Tracking           | Alert Feed                      |
+| ---------------------------------- | ------------------------------- |
+| ![](Screenshots/Geofence-page.png) | ![](Screenshots/Alert-page.png) |
+
+| Violation History                   |
+| ----------------------------------- |
+| ![](Screenshots/violation-page.png) |
+
+---
+
+# Future Improvements
+
+- Vehicle movement simulation
+- Route history visualization
+- JWT Authentication
+- Role-Based Access Control (RBAC)
+- Email/SMS Notifications
+- Multi-vehicle live tracking
+- Heatmap analytics
+
+---
+
+# Author
+
+**Mohamed Fazil**
+
+- GitHub: https://github.com/MohamedFazil1406
+- LinkedIn: _(Add your LinkedIn profile here)_
+
+---
+
+# License
+
+This project is licensed under the **MIT License**.
