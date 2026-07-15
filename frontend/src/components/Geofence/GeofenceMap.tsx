@@ -115,7 +115,7 @@ export default function GeofenceMap({
               dragend: (event) => {
                 const marker = event.target;
                 const position = marker.getLatLng();
-
+                console.log("Dragged to:", position);
                 onVehicleMove(vehicle.id, position.lat, position.lng);
               },
             }}

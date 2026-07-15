@@ -9,6 +9,8 @@ import { getVehicles } from "../../api/vehicle";
 import { VehicleContext } from "../../context/VehicleContext";
 import { updateVehicleLocation } from "../../api/location";
 
+import toast from "react-hot-toast";
+
 type DrawPoint = {
   latitude: number;
   longitude: number;
@@ -48,24 +50,28 @@ export default function Geofences() {
     }
   };
 
-  const handleSave = async (form: {
-    name: string;
-    description: string;
-    category: string;
-  }) => {
+  async function handleSave(form: any) {
     try {
+      if (points.length < 4) {
+        toast.error("Please draw a geofence with at least 4 points.");
+        return;
+      }
+
       await createGeofence({
         ...form,
         coordinates: points,
       });
 
+      toast.success("Geofence created successfully!");
+
       setPoints([]);
 
       await load();
     } catch (error) {
-      console.error("Failed to create geofence:", error);
+      toast.error("Failed to create geofence.");
+      console.error(error);
     }
-  };
+  }
 
   async function handleVehicleMove(
     vehicleId: string,

@@ -9,34 +9,25 @@ export default function VehicleTable({ vehicles }: Props) {
     <table className="w-full mt-8 bg-white rounded shadow">
       <thead>
         <tr className="bg-gray-200">
-          <th className="p-3">Vehicle</th>
+          <th className="p-3">ID</th>
+          <th>Vehicle</th>
           <th>Driver</th>
           <th>Type</th>
           <th>Phone</th>
-          <th>Status</th>
         </tr>
       </thead>
 
       <tbody>
         {vehicles.map((vehicle) => (
           <tr key={vehicle.id} className="border-b hover:bg-gray-50">
-            <td className="p-3">{vehicle.vehicle_number}</td>
+            <td className="p-3">{vehicle.id}</td>
+            <td>{vehicle.vehicle_number}</td>
 
             <td>{vehicle.driver_name}</td>
 
             <td>{vehicle.vehicle_type}</td>
 
             <td>{vehicle.phone}</td>
-
-            <td>
-              <span
-                className={`px-2 py-1 rounded text-white ${
-                  vehicle.status === "active" ? "bg-green-600" : "bg-red-600"
-                }`}
-              >
-                {vehicle.status}
-              </span>
-            </td>
           </tr>
         ))}
       </tbody>

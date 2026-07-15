@@ -114,6 +114,14 @@ func (s *LocationService) UpdateLocation(req dto.UpdateLocationRequest) error {
 			continue
 		}
 
+		log.Printf(
+    "Previous=%v Current=%v Vehicle=%s Geofence=%s",
+    state.IsInside,
+    inside,
+    vehicleID,
+    geo.Name,
+)
+
 		event := "exit"
 		if inside {
 			event = "entry"
